@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
-from minepy import cstats
+from torchlogic.utils.mic import compute_mic_matrix
 
 import torch
 from torch import nn
@@ -207,8 +207,8 @@ class RNRNRegressor(BaseSKLogicEstimator):
 
         # initial bandit policy
         assert len(feature_names) == X.shape[1], f"feat names: {len(feature_names)}; x: {X.shape[1]}"
-        mic_c_policy, _ = cstats(X.T, y.T, alpha=9, c=5, est="mic_e")
-        mic_c_policy = torch.tensor(mic_c_policy.T)
+        mic_c_policy, _ = compute_mic_matrix(X, y, alpha=.45, c=6)
+        mic_c_policy = torch.tensor(mic_c_policy)
 
         if X.shape[1] < self.n_selected_features_input:
             Warning(
