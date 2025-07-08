@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler
 import pytest
 from pytest import fixture
 
-from torchlogic.sklogic.base.base_estimator import BaseSKLogicEstimator
+from nrn.sklogic.base.base_estimator import BaseSKLogicEstimator
 
 
 class TestBaseEstimator:

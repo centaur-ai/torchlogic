@@ -1,7 +1,7 @@
 import os
 import torch
 
-from torchlogic.nn import LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, Predicates, ConcatenateBlocksLogic
+from nrn.nn import LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, Predicates, ConcatenateBlocksLogic
 
 from pytest import fixture
 

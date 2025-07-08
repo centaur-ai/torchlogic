@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 
 from pytest import fixture
 
-from torchlogic.sklogic.regressors import RNRNRegressor
+from nrn.sklogic.regressors import RNRNRegressor
 
 
 class TestRNRNRegressor:

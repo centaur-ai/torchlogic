@@ -8,9 +8,9 @@ from torch.utils.data import Dataset, DataLoader
 
 from sklearn.metrics import roc_auc_score
 
-from torchlogic.models.base import BaseBanditNRNModel
-from torchlogic.modules import BanditNRNModule
-from torchlogic.utils.trainers import BanditNRNTrainer
+from nrn.models.base import BaseBanditNRNModel
+from nrn.modules import BanditNRNModule
+from nrn.utils.trainers import BanditNRNTrainer
 
 from pytest import fixture
 

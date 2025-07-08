@@ -6,8 +6,8 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from torchlogic.models.base import BoostedBanditNRNModel
-from torchlogic.utils.trainers import BoostedBanditNRNTrainer
+from nrn.models.base import BoostedBanditNRNModel
+from nrn.utils.trainers import BoostedBanditNRNTrainer
 
 from pytest import fixture
 

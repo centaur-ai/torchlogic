@@ -1,6 +1,6 @@
 import os
 
-from torchlogic.utils.explanations.simplification import Node, Explanation
+from nrn.utils.explanations.simplification import Node, Explanation
 
 from pytest import fixture
 

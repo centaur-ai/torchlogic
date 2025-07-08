@@ -2,7 +2,7 @@ import os
 
 import torch
 
-from torchlogic.nn import Predicates
+from nrn.nn import Predicates
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(ROOT_DIR)

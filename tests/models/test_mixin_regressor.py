@@ -9,8 +9,8 @@ from pytest import fixture
 from io import StringIO
 from unittest.mock import patch
 
-from torchlogic.models import BanditNRNRegressor
-from torchlogic.utils.trainers import BoostedBanditNRNTrainer
+from nrn.models import BanditNRNRegressor
+from nrn.utils.trainers import BoostedBanditNRNTrainer
 
 
 class TestRegressorMixin:

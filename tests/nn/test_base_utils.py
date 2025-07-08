@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import torch
 
-from torchlogic.nn import LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock, \
+from nrn.nn import LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock, \
     Predicates, ConcatenateBlocksLogic
 
 from pytest import fixture

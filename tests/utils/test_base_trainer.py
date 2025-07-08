@@ -7,9 +7,9 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from torchlogic.modules import BanditNRNModule
-from torchlogic.models.base import BaseBanditNRNModel
-from torchlogic.utils.trainers.base import BaseReasoningNetworkDistributedTrainer
+from nrn.modules import BanditNRNModule
+from nrn.models.base import BaseBanditNRNModel
+from nrn.utils.trainers.base import BaseReasoningNetworkDistributedTrainer
 
 import pytest
 from pytest import fixture

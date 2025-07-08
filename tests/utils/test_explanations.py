@@ -3,7 +3,7 @@ import os
 import pytest
 from pytest import fixture
 
-from torchlogic.utils.explanations import simplification
+from nrn.utils.explanations import simplification
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(ROOT_DIR)

@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 import pytest
 from pytest import fixture
 
-from torchlogic.sklogic.classifiers import RNRNClassifier
+from nrn.sklogic.classifiers import RNRNClassifier
 
 
 class TestRNRNClassifier:

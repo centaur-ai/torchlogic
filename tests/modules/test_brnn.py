@@ -1,5 +1,5 @@
 import torch
-from torchlogic.modules import BanditNRNModule
+from nrn.modules import BanditNRNModule
 
 
 class TestBaseClassifier:
