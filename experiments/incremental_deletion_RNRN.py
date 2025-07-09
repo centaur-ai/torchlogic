@@ -21,13 +21,13 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, SubsetRandomSampler
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-from torchlogic.models import BanditNRNClassifier
-from torchlogic.utils.trainers import BanditNRNTrainer
+from nrn.models import BanditNRNClassifier
+from nrn.utils.trainers import BanditNRNTrainer
 
 from aix360.algorithms.rbm import FeatureBinarizerFromTrees
 from src.tuners import BanditRRNNODATuner
 from src.datasets import TorchDataset
-from minepy import cstats
+from nrn.utils.mic import compute_mic_matrix
 
 from src.encoders import FeatureEncoder
 from src.datasets import OpemlMLDataset
@@ -466,8 +466,8 @@ def bandit_rrn_noda_main(
     torch.random.manual_seed(args.random_state)
 
     # initial bandit policy
-    mic_c_policy, _ = cstats(X_train_val.T, y_train_val.T, alpha=9, c=5, est="mic_e")
-    mic_c_policy = torch.tensor(mic_c_policy.T)
+    mic_c_policy, _ = compute_mic_matrix(X_train_val, y_train_val, alpha=.45, c=6)
+    mic_c_policy = torch.tensor(mic_c_policy)
 
     model = BanditNRNClassifier(
         target_names=tuner.target_names if len(tuner.target_names) > 2 else ['positive_class'],

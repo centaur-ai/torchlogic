@@ -9,8 +9,8 @@ from torch.utils.data import Dataset, DataLoader
 
 from pytest import fixture
 
-from torchlogic.models.base import BaseBanditNRNModel
-from torchlogic.models import BanditNRNClassifier
+from nrn.models.base import BaseBanditNRNModel
+from nrn.models import BanditNRNClassifier
 
 
 class TestBaseBanditRRN:

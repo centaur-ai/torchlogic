@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import torch
 
-from torchlogic.nn import (LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock,
+from nrn.nn import (LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock,
                            Predicates, VariationalLukasiewiczChannelAndBlock, VariationalLukasiewiczChannelOrBlock,
                            AttentionLukasiewiczChannelAndBlock, AttentionLukasiewiczChannelOrBlock)
 

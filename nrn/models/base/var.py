@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.optim.swa_utils import AveragedModel
 
-from torchlogic.modules import VarNRNModule
+from nrn.modules import VarNRNModule
 from .rn import ReasoningNetworkModel
 
 

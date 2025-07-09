@@ -15,9 +15,9 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.optim.swa_utils import AveragedModel
 
-from torchlogic.modules import BanditNRNModule
+from nrn.modules import BanditNRNModule
 from .pruningrn import PruningReasoningNetworkModel
-from torchlogic.utils.operations import register_hooks
+from nrn.utils.operations import register_hooks
 
 
 class BaseBanditNRNModel(PruningReasoningNetworkModel):

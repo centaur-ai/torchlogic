@@ -13,7 +13,7 @@ import pandas as pd
 from torch.utils.data import DataLoader
 from sklearn.metrics import roc_auc_score, average_precision_score
 
-from torchlogic.utils import tensor_agg
+from nrn.utils import tensor_agg
 
 
 def _format(x):

@@ -3,7 +3,7 @@ import logging
 
 import torch
 from ..utils.operations import val_clamp
-from torchlogic.nn.base import (LukasiewiczChannelBlock, BasePredicates,
+from nrn.nn.base import (LukasiewiczChannelBlock, BasePredicates,
                                 VariationalLukasiewiczChannelBlock, AttentionLukasiewiczChannelBlock)
 
 

@@ -9,7 +9,7 @@ from torch.nn import Parameter, functional
 
 from .predicates import BasePredicates
 from ._core import LukasiewiczCore
-from torchlogic.utils.operations import val_clamp, EXU
+from nrn.utils.operations import val_clamp, EXU
 
 
 class LukasiewiczChannelBlock(LukasiewiczCore):

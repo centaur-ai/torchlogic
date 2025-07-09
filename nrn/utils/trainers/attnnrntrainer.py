@@ -1,5 +1,4 @@
 from copy import deepcopy
-from collections import defaultdict
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -10,11 +9,11 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from pytorch_optimizer import Lookahead
 
-from torchlogic.models.base import BaseBanditNRNModel
+from nrn.models.base import BaseBanditNRNModel
 from .base import BaseReasoningNetworkDistributedTrainer
 
 
-class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
+class AttnNRNTrainer(BaseReasoningNetworkDistributedTrainer):
 
     def __init__(
             self,
@@ -32,9 +31,6 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             augment_alpha: float = 0.03,
             class_independent: bool = False,
             early_stopping_plateau_count: int = 20,
-            perform_prune_plateau_count: int = 10,
-            increase_prune_plateau_count: int = 20,
-            increase_prune_plateau_count_plateau_count: int = 20
     ):
         """
         Train a BanditRRN model.
@@ -72,14 +68,13 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             epochs (int): Maximum number of epochs to train for
             l1_lambda (float): L1 regularization weight
             early_stopping_plateau_count (int): Number of epochs without improvement to end training.
-            perform_prune_plateau_count (int): Number of epochs without improvement to prune and grow model.
             accumulation_steps (int): Number of optimization steps to perform before backward operation.
             objective (str): 'maximize' or 'minimize'.  Default is 'maximize'.
         """
         if class_independent:
             setattr(loss_func, "reduction", 'none')
 
-        super(BanditNRNTrainer, self).__init__(
+        super(AttnNRNTrainer, self).__init__(
             model=model,
             loss_func=loss_func,
             optimizer=optimizer,
@@ -90,9 +85,6 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             accumulation_steps=accumulation_steps,
             objective=objective,
         )
-        self.prune_and_grow_plateau_count = perform_prune_plateau_count
-        self.increase_prune_plateau_count = increase_prune_plateau_count + perform_prune_plateau_count
-        self.increase_prune_plateau_count_plateau_count = increase_prune_plateau_count_plateau_count
 
         self.lookahead_steps = lookahead_steps
         self.lookahead_steps_size = lookahead_steps_size
@@ -111,72 +103,41 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             self.best_class_val_performances = np.array([np.nan] * self.model.output_size)
             self.best_class_train_performances = np.array([np.nan] * self.model.output_size)
         self.model.best_state['rn'] = deepcopy(self.model.rn)
-        self.model.best_state['prune_rn'] = deepcopy(self.model.rn)
         self.model.best_state['epoch'] = 0
-        self.model.best_state['prune_epoch'] = 0
-        # self.model.best_state['initialized_optimizer'] = deepcopy(self.optimizer)
-        # self.model.best_state['prune_initialized_optimizer'] = deepcopy(self.optimizer)
-        self.model.best_state['was_pruned'] = False
-        self.model.best_state['prune_was_pruned'] = False
 
-    def save_best_state(self, classes: npt.NDArray = None, mode: str = 'prune'):
+    def save_best_state(self, classes: npt.NDArray = None):
         """
         Save the state of the network.
 
         Args:
             classes (List[int]): List of integers indicating which class states to save.
-            mode (str): 'eval' or 'prune'.  Determines which set of states to save.  'eval' is for early stopping
-                and the final model.  'prune' is for the pruning process.
         """
-        if mode == 'prune':
-            state_var = 'prune_'
-        elif mode == 'eval':
-            state_var = ''
-        else:
-            raise ValueError("`mode` must be 'prune' or 'eval'.")
         if classes is not None:
-            new_state_dict = deepcopy(self.model.best_state[state_var+'rn'].state_dict())
+            new_state_dict = deepcopy(self.model.best_state['rn'].state_dict())
             current_state_dict = deepcopy(self.model.rn.state_dict())
             for k, v in new_state_dict.items():
                 if k.find('weights') > -1 or k.find('mask') > -1:
                     for c in classes:
                         new_state_dict[k][c].data.copy_(current_state_dict[k][c].data)
-            self.model.best_state[state_var+'rn'].load_state_dict(new_state_dict)
+            self.model.best_state['rn'].load_state_dict(new_state_dict)
         else:
-            self.model.best_state[state_var+'rn'] = deepcopy(self.model.rn)
+            self.model.best_state['rn'] = deepcopy(self.model.rn)
 
-        self.model.best_state[state_var+'epoch'] = self.epoch
-        # self.model.best_state[state_var+'initialized_optimizer'] = deepcopy(self.optimizer)
-        self.model.best_state[state_var+'was_pruned'] = self.was_pruned
+        self.model.best_state['epoch'] = self.epoch
 
-    def set_best_state(self, mode: str = 'eval') -> bool:
+    def set_best_state(self) -> bool:
         """
         Set the best state from the last saved.
-
-        Args:
-            mode (str): 'eval' or 'prune'.  Determines which set of states to restore.  'eval' is for early stopping
-                and the final model.  'prune' is for the pruning process.
 
         Returns:
             bool: was the state loaded successfully
         """
-        if mode == 'prune':
-            state_var = 'prune_'
-        elif mode == 'eval':
-            state_var = ''
-        else:
-            raise ValueError("`mode` must be 'prune' or 'eval'.")
-
-        self.model.rn.load_state_dict(self.model.best_state[state_var+'rn'].state_dict())
-        if mode == 'eval':  # only set the epoch to the best epoch if doing so for evaluation
-            self.epoch = self.model.best_state[state_var+'epoch']
-        # self.optimizer = deepcopy(self.model.best_state[state_var+'initialized_optimizer'])
-        self.was_pruned = self.model.best_state[state_var+'was_pruned']
+        self.model.rn.load_state_dict(self.model.best_state['rn'].state_dict())
 
         return self._validate_state_dicts(
-            self.model.rn.state_dict(), self.model.best_state[state_var+'rn'].state_dict())
+            self.model.rn.state_dict(), self.model.best_state['rn'].state_dict())
     
-    def _check_improvement(self, performance, mode="eval"):
+    def _check_improvement(self, performance):
         """
         Check if performances have improved
         
@@ -184,24 +145,14 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             mode (str): 'eval' or 'prune'.  Determines which set of performances to check. 'eval' is for early stopping
                 and the final model.  'prune' is for the pruning process.
         """
-        if self.objective == 'maximize' and mode == 'eval':
-            if mode == 'eval':
-                return performance > self.best_val_performance
-            elif mode == 'prune':
-                return performance > self.best_train_performance
-            else:
-                raise ValueError("'mode' must be 'eval' or 'prune'.")
-        elif self.objective == 'minimize' or mode == 'prune':
-            if mode == 'eval':
-                return performance < self.best_val_performance
-            elif mode == 'prune':
-                return performance < self.best_train_performance
-            else:
-                raise ValueError("'mode' must be 'eval' or 'prune'.")
+        if self.objective == 'maximize':
+            return performance > self.best_val_performance
+        elif self.objective == 'minimize':
+            return performance < self.best_val_performance
         else:
             raise AssertionError("`objective` must be one of 'maximize' or 'minimize'")
 
-    def _check_indices_to_update(self, performance: npt.NDArray, mode='eval') -> npt.NDArray:
+    def _check_indices_to_update(self, performance: npt.NDArray) -> npt.NDArray:
         """
         Check which class indices should be updated based on if the performance has improved.
 
@@ -213,22 +164,17 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
         Returns:
             npt.NDArray: class indices that have improved.
         """
-        if mode == 'eval':
-            best_performances = self.best_class_val_performances
-        elif mode == 'prune':
-            best_performances = self.best_class_train_performances
-        else:
-            raise ValueError("'mode' must be 'eval' or 'prune'")
+        best_performances = self.best_class_val_performances
 
-        if self.epoch <= 1 and self.objective == 'maximize' and mode == 'eval':
+        if self.epoch <= 1 and self.objective == 'maximize':
             condition = ((performance > best_performances)
                          | np.isnan(best_performances))
-        elif self.epoch > 1 and self.objective == 'maximize' and mode == 'eval':
+        elif self.epoch > 1 and self.objective == 'maximize':
             condition = (performance > best_performances)
-        elif self.epoch <= 1 and (self.objective == 'minimize' or mode == 'prune'):
+        elif self.epoch <= 1 and (self.objective == 'minimize'):
             condition = ((performance < best_performances)
                          | np.isnan(best_performances))
-        elif self.epoch > 1 and (self.objective == 'minimize' or mode == 'prune'):
+        elif self.epoch > 1 and (self.objective == 'minimize'):
             condition = (performance < best_performances)
         else:
             raise AssertionError("`objective` must be one of 'maximize' or 'minimize'")
@@ -238,235 +184,29 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
     def _class_independent_evaluate_step(
             self,
             performance: npt.NDArray,
-            mode: str = 'eval'
     ) -> Tuple[float, npt.NDArray]:
         """
         Evaluate which classes have improved.  Report and save results.
 
         Args:
             performance (npt.NDArray): Performance by class
-            mode (str): 'eval' or 'prune'.  Determines which set of performances to check. 'eval' is for early stopping
-                and the final model.  'prune' is for the pruning process.
 
         Returns:
             Tuple[float, npt.NDArray]: mean performance over classes, classes that improved
         """
-        indices_to_update = self._check_indices_to_update(performance, mode=mode)
+        indices_to_update = self._check_indices_to_update(performance)
         if len(indices_to_update) > 0:
-            self.logger.info(f"CURRENT {mode.upper()} PERFORMANCE FOR CLASSES {indices_to_update} "
+            self.logger.info(f"CURRENT PERFORMANCE FOR CLASSES {indices_to_update} "
                              f"> BEST VAL PERFORMANCE FOR CLASSES {indices_to_update}")
-            self.save_best_state(indices_to_update, mode=mode)
+            self.save_best_state(indices_to_update)
 
         for c in range(self.model.output_size):
             if c in indices_to_update:
-                if mode == 'eval':
-                    self.best_class_val_performances[c] = performance[c]
-                elif mode == 'prune':
-                    self.best_class_train_performances[c] = performance[c]
-                else:
-                    raise ValueError("'mode' must be 'eval' or 'prune'.")
+                self.best_class_val_performances[c] = performance[c]
 
-        if mode == 'eval':
-            best_performances = self.best_class_val_performances
-        elif mode == 'prune':
-            best_performances = self.best_class_train_performances
-        else:
-            raise ValueError("'mode' must be 'eval' or 'prune'.")
+        best_performances = self.best_class_val_performances
 
         return np.nanmean(best_performances), indices_to_update
-
-    def _increment_prune_and_grow_plateau_counter(
-            self,
-            indices_to_update: npt.NDArray,
-            prune_and_grow_plateau_counter: dict,
-            increase_prune_and_grow_plateau_counter: dict
-    ) -> Tuple[dict, dict]:
-        """
-        Increment the prune and grow plateau counters.
-
-        Args:
-            indices_to_update (npt.NDArray): Class indices that improved.
-            prune_and_grow_plateau_counter (dict): Plateau counts by class to determine when to prune.
-            increase_prune_and_grow_plateau_counter (dict): Plateau counts by class to determine when to
-                increase the prune_and_grow_plateau_counter
-
-        Returns:
-            dict, dict: prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter
-        """
-        for c in range(self.model.output_size):
-            if c in indices_to_update:
-                prune_and_grow_plateau_counter[c] = 0
-                increase_prune_and_grow_plateau_counter[c] = 0
-            else:
-                prune_and_grow_plateau_counter[c] += 1
-                increase_prune_and_grow_plateau_counter[c] += 1
-
-        return prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter
-
-    def _prune_evaluate_step(self, **kwargs) -> Tuple[dict, dict, npt.NDArray, bool]:
-        """
-        Perform evaluation and increment counters for pruning process.
-
-        Args:
-            **kwargs:
-                prune_and_grow_plateau_counter (dict): Plateau counts by class to determine when to prune.
-                increase_prune_and_grow_plateau_counter (dict): Plateau counts by class to determine when to
-                    increase the prune_and_grow_plateau_counter
-                train_dl (DataLoader): PyTorch DataLoader with the training data.
-                evaluation_metric (sklearn.metrics): Scikit-learn performance metric function.
-                multi_class (bool): Use multi-class evaluation approach.
-
-        Returns:
-            dict, dict, npt.NDArray, bool: prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter, 
-                classes that improved, was there any improvement
-        """
-        prune_and_grow_plateau_counter = kwargs.get("prune_and_grow_plateau_counter")
-        increase_prune_and_grow_plateau_counter = kwargs.get("increase_prune_and_grow_plateau_counter")
-        train_performance = kwargs.get("total_loss")
-
-        # if in class independent mode then each class must have its own val performances
-        if self.class_independent:
-            train_performance, indices_to_update = self._class_independent_evaluate_step(
-                train_performance, mode='prune')
-        else:
-            indices_to_update = None
-
-        # check if the val performance is better
-        improvement_condition = self._check_improvement(train_performance, mode='prune')
-
-        if self.class_independent:
-            prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter = (
-                self._increment_prune_and_grow_plateau_counter(
-                indices_to_update,
-                prune_and_grow_plateau_counter,
-                increase_prune_and_grow_plateau_counter,
-            ))
-
-        if improvement_condition:
-            if not self.class_independent:
-                prune_and_grow_plateau_counter = 0
-                increase_prune_and_grow_plateau_counter = 0
-            self.best_train_performance = train_performance
-        else:
-            if not self.class_independent:
-                prune_and_grow_plateau_counter += 1
-                increase_prune_and_grow_plateau_counter += 1
-
-        return (prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter, indices_to_update,
-                improvement_condition)
-
-    def _update_policy(self, **kwargs):
-        """
-        Perform policy update.
-        
-        Args:
-            **kwargs:
-                train_dl (DataLoader): PyTorch DataLoader with the training data.
-                output_metric (sklearn.metrics): Scikit-learn performance metric function.
-        """
-        dl = kwargs.get('train_dl')
-        indices_to_update = kwargs.get('indices_to_update')
-        output_metric = kwargs.get('output_metric')
-
-        if not self.class_independent:
-            self.logger.info(f"UPDATING POLICY.")
-            self._rn_to_cuda()
-            self.model.update_policy(dl, output_metric=output_metric, objective=self.objective)
-            self._rn_to_cuda()
-        else:
-            self.logger.info(f"UPDATING POLICY FOR CLASSES: {indices_to_update}")
-            self._rn_to_cuda()
-            self.model.update_policy(dl, indices_to_update, output_metric, objective=self.objective)
-            self._rn_to_cuda()
-
-    def _update_policy_step(self, **kwargs):
-        """
-        Check which classes to update and perform policy update.
-        
-        Args:
-            **kwargs (dict): kwargs
-            
-        Returns:
-            dict: **kwargs
-        """
-
-        prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter, indices_to_update, \
-         improvement_condition = self._prune_evaluate_step(**kwargs)
-
-        kwargs.update({'indices_to_update': indices_to_update})
-
-        # update policy if there was an improvement
-        if improvement_condition:
-            self._update_policy(**kwargs)
-
-        kwargs.update({
-                'prune_and_grow_plateau_counter': prune_and_grow_plateau_counter,
-                'increase_prune_and_grow_plateau_counter': increase_prune_and_grow_plateau_counter
-        })
-
-        return kwargs
-
-    def _prune_step(self, **kwargs) -> Tuple[dict, dict]:
-        """
-        Perform pruning of the Reasoning Network.
-        
-        Args:
-            **kwargs (dict): kwargs
-            
-        Returns:
-            dict, dict: prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter
-        """
-        self.set_best_state(mode='prune')
-        prune_and_grow_plateau_counter = kwargs.get('prune_and_grow_plateau_counter')
-        increase_prune_and_grow_plateau_counter = kwargs.get('increase_prune_and_grow_plateau_counter')
-
-        if not self.class_independent:
-            if increase_prune_and_grow_plateau_counter >= self.increase_prune_plateau_count_plateau_count:
-                self.prune_and_grow_plateau_count = self.increase_prune_plateau_count
-            condition = prune_and_grow_plateau_counter >= self.prune_and_grow_plateau_count
-            reason = f"REACHED PLATEAU COUNT {self.prune_and_grow_plateau_count}"
-        else:
-            plateau_counts = [self.increase_prune_plateau_count
-                              if v >= self.increase_prune_plateau_count_plateau_count
-                              else self.prune_and_grow_plateau_count
-                              for k, v in increase_prune_and_grow_plateau_counter.items()]
-            plateaued_classes = [k for c, (k, v) in zip(plateau_counts, prune_and_grow_plateau_counter.items())
-                                 if v >= c]
-            plateaued_classes_counts = [c for c, (k, v) in zip(plateau_counts, prune_and_grow_plateau_counter.items())
-                                        if v >= c]
-            condition = bool(plateaued_classes)
-            reason = f"REACHED PLATEAU COUNT {plateaued_classes_counts} FOR CLASSES {plateaued_classes}."
-
-        if condition:
-            if not self.class_independent:
-                self.logger.info(f"PERFORMING PRUNE.  {reason}")
-                self.set_best_state(mode='prune')
-                self._rn_to_cuda()
-                self.model.perform_prune(
-                    dl=kwargs.get('train_dl'),
-                    output_metric=kwargs.get('output_metric'),
-                    objective=self.objective
-                )
-                self._rn_to_cuda()
-                prune_and_grow_plateau_counter = 0
-            else:
-                self.logger.info(f"PERFORMING PRUNE ON CLASSES: {plateaued_classes}.  {reason}")
-                self.set_best_state(mode='prune')
-                self._rn_to_cuda()
-                self.model.perform_prune(
-                    dl=kwargs.get('train_dl'),
-                    class_indices=plateaued_classes,
-                    output_metric=kwargs.get('output_metric'),
-                    objective=self.objective
-                )
-                self._rn_to_cuda()
-
-                for k in plateaued_classes:
-                    prune_and_grow_plateau_counter[k] = 0
-
-            self.was_pruned = True
-
-        return prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter
 
     def _increment_plateau_counter(self, val_performance: Union[npt.NDArray, float], **kwargs) -> int:
         """
@@ -497,7 +237,7 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             plateau_counter = 0
             if not self.class_independent:
                 # best states have already been saved by class in class_independent_evaluate_step
-                self.save_best_state(mode='eval')
+                self.save_best_state()
             self.best_val_performance = val_performance
         else:
             plateau_counter += 1
@@ -661,13 +401,6 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
         total_loss = 1e12
         plateau_counter = 0
 
-        if self.class_independent:
-            prune_and_grow_plateau_counter = defaultdict(float)
-            increase_prune_and_grow_plateau_counter = defaultdict(float)
-        else:
-            prune_and_grow_plateau_counter = 0
-            increase_prune_and_grow_plateau_counter = 0
-
         if val_dl is None:
             val_dl = train_dl
 
@@ -681,8 +414,6 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
                 'optimizer': self.optimizer,
                 'epoch': epoch,
                 'plateau_counter': plateau_counter,
-                'prune_and_grow_plateau_counter': prune_and_grow_plateau_counter,
-                'increase_prune_and_grow_plateau_counter': increase_prune_and_grow_plateau_counter,
                 'evaluation_metric': evaluation_metric,
                 'multi_class': multi_class,
                 'output_metric': evaluation_metric,
@@ -690,11 +421,9 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             }
 
             if self.early_stopping_plateau_count > 0:
+                self.model.rn.eval()
                 plateau_counter = self._validation_step(**kwargs)
-
-            if epoch > 0:
-                kwargs = self._update_policy_step(**kwargs)
-                prune_and_grow_plateau_counter, increase_prune_and_grow_plateau_counter = self._prune_step(**kwargs)
+                self.model.rn.train()
 
             if plateau_counter >= self.early_stopping_plateau_count > 0:
                 self.logger.info(f"STOPPING EARLY.  REACHED PLATEAU COUNT OF {plateau_counter}.")
@@ -707,8 +436,6 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
                     val_dl=val_dl,
                     epoch=epoch,
                     plateau_counter=plateau_counter,
-                    prune_and_grow_plateau_counter=prune_and_grow_plateau_counter,
-                    increase_prune_and_grow_plateau_counter=increase_prune_and_grow_plateau_counter,
                     total_steps=total_steps,
                     output_metric=evaluation_metric
                 ))
@@ -717,7 +444,7 @@ class BanditNRNTrainer(BaseReasoningNetworkDistributedTrainer):
             epoch += 1
 
         if self.early_stopping_plateau_count == 0:
-            self.save_best_state(mode='eval')
+            self.save_best_state()
 
 
-__all__ = [BanditNRNTrainer]
+__all__ = [AttnNRNTrainer]

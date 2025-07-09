@@ -1,6 +1,6 @@
 import torch
-from torchlogic.modules import AttentionNRNModule
-from torchlogic.nn import (ConcatenateBlocksLogic, AttentionLukasiewiczChannelAndBlock,
+from nrn.modules import AttentionNRNModule
+from nrn.nn import (ConcatenateBlocksLogic, AttentionLukasiewiczChannelAndBlock,
                            AttentionLukasiewiczChannelOrBlock)
 
 

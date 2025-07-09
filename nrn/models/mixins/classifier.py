@@ -8,9 +8,9 @@ from scipy.special import expit
 import torch
 from torch.utils.data import DataLoader
 
-from torchlogic.utils.explanations import register_hooks
+from nrn.utils.explanations import register_hooks
 from ._base_mixin import BaseReasoningNetworkMixin
-from torchlogic.utils.explanations import simplification
+from nrn.utils.explanations import simplification
 
 
 class ReasoningNetworkClassifierMixin(BaseReasoningNetworkMixin):

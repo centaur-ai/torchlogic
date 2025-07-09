@@ -4,9 +4,9 @@ import numpy as np
 
 import torch
 
-from torchlogic.utils.explanations import register_hooks
+from nrn.utils.explanations import register_hooks
 from ._base_mixin import BaseReasoningNetworkMixin
-from torchlogic.utils.explanations import simplification
+from nrn.utils.explanations import simplification
 
 
 class ReasoningNetworkRegressorMixin(BaseReasoningNetworkMixin):

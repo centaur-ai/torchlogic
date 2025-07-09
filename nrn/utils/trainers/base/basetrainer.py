@@ -4,7 +4,7 @@ from copy import deepcopy
 import torch
 from torch.utils.data import DataLoader
 
-from torchlogic.models.base import ReasoningNetworkModel
+from nrn.models.base import ReasoningNetworkModel
 
 
 class BaseReasoningNetworkDistributedTrainer(object):

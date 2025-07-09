@@ -2,15 +2,15 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
-from torchlogic.utils.mic import compute_mic_matrix
+from nrn.utils.mic import compute_mic_matrix
 
 import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader
 
-from torchlogic.models import BanditNRNClassifier
-from torchlogic.utils.trainers import BanditNRNTrainer
+from nrn.models import BanditNRNClassifier
+from nrn.utils.trainers import BanditNRNTrainer
 
 from ..datasets.simple_dataset import SimpleDataset
 from ..base.base_estimator import BaseSKLogicEstimator

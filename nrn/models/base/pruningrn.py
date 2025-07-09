@@ -1,5 +1,5 @@
 import logging
-from torchlogic.models.base import ReasoningNetworkModel
+from nrn.models.base import ReasoningNetworkModel
 
 
 class PruningReasoningNetworkModel(ReasoningNetworkModel):

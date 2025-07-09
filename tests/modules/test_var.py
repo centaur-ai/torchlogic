@@ -1,6 +1,6 @@
 import torch
-from torchlogic.modules import VarNRNModule
-from torchlogic.nn import (ConcatenateBlocksLogic, VariationalLukasiewiczChannelAndBlock,
+from nrn.modules import VarNRNModule
+from nrn.nn import (ConcatenateBlocksLogic, VariationalLukasiewiczChannelAndBlock,
                            VariationalLukasiewiczChannelOrBlock)
 
 

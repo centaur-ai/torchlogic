@@ -3,15 +3,15 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
-from torchlogic.utils.mic import compute_mic_matrix
+from nrn.utils.mic import compute_mic_matrix
 
 import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader
 
-from torchlogic.models import BanditNRNRegressor
-from torchlogic.utils.trainers import BanditNRNTrainer
+from nrn.models import BanditNRNRegressor
+from nrn.utils.trainers import BanditNRNTrainer
 
 from ..datasets.simple_dataset import SimpleDataset
 from ..base.base_estimator import BaseSKLogicEstimator

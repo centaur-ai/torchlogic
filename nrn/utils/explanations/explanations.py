@@ -1,5 +1,5 @@
 import re
-from torchlogic.utils.explanations.simplification import Explanation
+from nrn.utils.explanations.simplification import Explanation
 
 
 def remove_duplicate_words(input1: str):

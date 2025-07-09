@@ -1,7 +1,7 @@
 import os
 import torch
 
-from torchlogic.nn import LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock, Predicates
+from nrn.nn import LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock, Predicates
 
 from pytest import fixture
 

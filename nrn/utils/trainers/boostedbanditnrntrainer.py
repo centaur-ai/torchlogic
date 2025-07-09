@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from torchlogic.models.base import BaseBanditNRNModel
+from nrn.models.base import BaseBanditNRNModel
 from .banditnrntrainer import BanditNRNTrainer
 
 
