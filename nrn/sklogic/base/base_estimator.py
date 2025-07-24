@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Sequence
 from collections import defaultdict
 
 import numpy as np
@@ -7,6 +7,7 @@ from sklearn.pipeline import make_pipeline
 
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
+from sklearn.model_selection import StratifiedShuffleSplit
 
 import torch
 from torch.utils.data import Dataset
@@ -131,6 +132,40 @@ class BaseSKLogicEstimator:
 
         return train_sampler, train_holdout_sampler
 
+    def _generate_stratified_training_data_loaders(self, dataset: Dataset, stratify_labels: Sequence, val_size: float = 0.15) -> Tuple[DataLoader, DataLoader]:
+        """
+        Generate stratified training data loaders.
+
+        Args:
+            dataset (Dataset): the training data PyTorch dataset
+            stratify_labels (Sequence): sequence of labels to stratify on (must be same length as dataset)
+            test_size (float): proportion of the dataset to include in the holdout set
+
+        Returns:
+            Tuple[DataLoader, DataLoader]: training and holdout dataloaders
+        """
+        assert len(stratify_labels) == len(dataset), "Stratification labels must match dataset length"
+
+        g = torch.Generator()
+        g.manual_seed(0)
+
+        splitter = StratifiedShuffleSplit(n_splits=1, test_size=val_size, random_state=0)
+        train_idx, holdout_idx = next(splitter.split(range(len(dataset)), stratify_labels))
+
+        train_sampler = SubsetRandomSampler(train_idx, generator=g)
+        holdout_sampler = SubsetRandomSampler(holdout_idx, generator=g)
+
+        train_dataloader = DataLoader(
+            dataset, batch_size=self.batch_size, sampler=train_sampler, generator=g,
+            pin_memory=self.pin_memory, persistent_workers=self.persistent_workers, num_workers=self.num_workers
+        )
+        train_holdout_dataloader = DataLoader(
+            dataset, batch_size=self.batch_size, sampler=holdout_sampler, generator=g,
+            pin_memory=self.pin_memory, persistent_workers=self.persistent_workers, num_workers=self.num_workers
+        )
+
+        return train_dataloader, train_holdout_dataloader
+    
     def _generate_training_data_loaders(self, dataset: Dataset) -> Tuple[DataLoader, DataLoader]:
         """
         Generate the training data loaders.
