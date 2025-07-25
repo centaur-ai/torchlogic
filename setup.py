@@ -1,17 +1,23 @@
 from setuptools import setup, find_packages
 
-if __name__ == "__main__":
-    with open("requirements.txt") as f:
-        requirements = f.read().splitlines()
+def parse_requirements(path):
+    with open(path) as f:
+        lines = f.read().splitlines()
+        return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
 
+if __name__ == "__main__":
     setup(
-        name="torchlogic",
-        packages=find_packages('torchlogic'),
-        package_dir={'': 'torchlogic'},
-        version="0.0.3-beta",
+        name="nrn-beta",
+        version="0.1.1",
         description="A PyTorch framework for rapidly developing Neural Reasoning Networks.",
-        classifiers=["Programming Language :: Python :: 3", "Operating System :: OS Independent"],
-        authors="Anonymous",
+        author="Anonymous",
         python_requires=">=3.6",
-        install_requires=requirements,
+        packages=find_packages(),
+        package_dir={"": "."},
+        install_requires=parse_requirements("requirements.txt"),
+        classifiers=[
+            "Programming Language :: Python :: 3",
+            "Operating System :: OS Independent"
+        ],
+        include_package_data=True,
     )
