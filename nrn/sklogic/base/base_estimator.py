@@ -11,14 +11,15 @@ from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader, SubsetRandomSampler
-from aix360.algorithms.rbm import FeatureBinarizerFromTrees
+# from aix360.algorithms.rbm import FeatureBinarizerFromTrees
 
 
 class BaseSKLogicEstimator:
 
     def __init__(
             self,
-            binarization: bool = True,
+            # binarization: bool = True,
+            binarization: bool = False,
             tree_num: int = 10,
             tree_depth: int = 5,
             tree_feature_selection: float = 0.5,
@@ -89,15 +90,15 @@ class BaseSKLogicEstimator:
         self._fbt_is_fitted = False
         self.min_max_features_dict = None
 
-        # create feature binarizer
-        if self.binarization:
-            self.fbt = FeatureBinarizerFromTrees(
-                treeNum=self.tree_num,
-                treeDepth=self.tree_depth,
-                treeFeatureSelection=self.tree_feature_selection,
-                threshRound=self.thresh_round,
-                randomState=0
-            )
+        # # create feature binarizer
+        # if self.binarization:
+        #     self.fbt = FeatureBinarizerFromTrees(
+        #         treeNum=self.tree_num,
+        #         treeDepth=self.tree_depth,
+        #         treeFeatureSelection=self.tree_feature_selection,
+        #         threshRound=self.thresh_round,
+        #         randomState=0
+        #     )
 
         self.model = None
 
@@ -273,7 +274,8 @@ class BaseSKLogicEstimator:
             df.columns.to_flat_index()))
         return df
 
-    def initialize_binarizer(self, fitted_binarizer: FeatureBinarizerFromTrees) -> None:
+    # def initialize_binarizer(self, fitted_binarizer: FeatureBinarizerFromTrees) -> None:
+    def initialize_binarizer(self, fitted_binarizer) -> None:
         """
         Initialize the feature binarizer from a previously fitted binarizer.
 
