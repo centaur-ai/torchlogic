@@ -257,7 +257,7 @@ class RNRNClassifier(BaseSKLogicEstimator):
                       multi_class=self.multi_class)
         trainer.set_best_state()
 
-    def predict(self, X: pd.DataFrame, decision_boundary=0.5) -> pd.DataFrame:
+    def predict(self, X: pd.DataFrame) -> pd.DataFrame:
         """
         Predict classes with fitted model on new data.
 
@@ -284,8 +284,7 @@ class RNRNClassifier(BaseSKLogicEstimator):
         )
 
         predictions, _ = self.model.predict(prediction_dl)
-        # class_predictions = (predictions > predictions.median()).astype(int)
-        class_predictions = (predictions > decision_boundary).astype(int)
+        class_predictions = (predictions > predictions.median()).astype(int)
 
         class_predictions.rename(columns=lambda x: x.replace("probs_", ""), inplace=True)
 
