@@ -15,7 +15,7 @@ GPU scaling.
 - _Masked Tensors_: Reasoning Networks use tensors and masking to represent any logical structure _and_ leverage GPU optimized computations
 - _Neural -> Symbolic Extension_: Symbolic operations in _NRN_ are PyTorch Modules and can therefore integrate with existing Deep Neural Networks seamlessly
 
-With these principles, _NRN_ and Neural Reasoning Networks are able
+With these principles, _NRN_ is able
 to extend and integrate with our current state-of-the-art technologies that leverage advances in 
 Deep Learning.  Neural Reasoning Networks developed with _NRN_ can scale with
 multi-GPU support.  Finally, those familiar with PyTorch development principles will have only a small step
