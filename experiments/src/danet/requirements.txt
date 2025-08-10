@@ -1,5 +1,0 @@
-torch>=1.4.0
-category_encoders
-yacs
-tensorboard>=2.2.2
-qhoptim

@@ -1,17 +1,9 @@
 from .predicates import Predicates
-from .blocks import (LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock,
-                     VariationalLukasiewiczChannelAndBlock, VariationalLukasiewiczChannelOrBlock,
-                     VariationalLukasiewiczChannelXOrBlock, AttentionLukasiewiczChannelAndBlock,
-                     AttentionLukasiewiczChannelOrBlock)
+from .blocks import (LukasiewiczChannelAndBlock, LukasiewiczChannelOrBlock, LukasiewiczChannelXOrBlock)
 from .utils import ConcatenateBlocksLogic
 
 __all__ = [Predicates,
            LukasiewiczChannelAndBlock,
            LukasiewiczChannelOrBlock,
            LukasiewiczChannelXOrBlock,
-           VariationalLukasiewiczChannelAndBlock,
-           VariationalLukasiewiczChannelOrBlock,
-           VariationalLukasiewiczChannelXOrBlock,
-           AttentionLukasiewiczChannelAndBlock,
-           AttentionLukasiewiczChannelOrBlock,
            ConcatenateBlocksLogic]
