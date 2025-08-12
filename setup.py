@@ -7,11 +7,16 @@ def parse_requirements(path):
 
 if __name__ == "__main__":
     setup(
-        name="nrn-beta",
-        version="0.1.1",
-        description="A PyTorch framework for rapidly developing Neural Reasoning Networks.",
-        author="Anonymous",
-        python_requires=">=3.6",
+        name="centaur-nrn",
+        version="0.1.2",
+        description="A PyTorch framework for rapidly developing Neural Reasoning Networks.NRN module under Centaur organization",
+        author="Centaur Team",
+        author_email="team@centaur.org",
+        url="https://github.com/centaur/nrn",
+        project_urls={
+        "Documentation": "https://docs.centaur.org/nrn",
+        "Source": "https://github.com/centaur/nrn",
+        "Issues": "https://github.com/centaur/nrn/issues"},
         packages=find_packages(),
         package_dir={"": "."},
         install_requires=parse_requirements("requirements.txt"),
