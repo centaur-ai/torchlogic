@@ -30,20 +30,6 @@ together to solve a binary-class classification problem.  Some key concepts cove
 - Producing Global and Sample level explanations for predictions from BanditNRN
 - Examining a detailed view of the induced weighted logic
 
-### A tutorial demonstrating use of Bandit-NRN for regression:
-
-[Bandit-NRN Tutorial - Regression]("link/to/notebook")
-
-In this tutorial you will learn how to use a BanditNRNRegressor and the BanditNRNTrainer
-together to solve a regression problem.  Some key concepts covered include:
-
-- Data preprocessing for Reasoning Networks
-- Feature naming conventions that improve interpretation of the model's natural language explanations
-- Binarizing numeric data using a Feature Binarization From Trees -- a method often used with BanditNRN to solve complex problems that have numeric inputs
-- Using optuna to run a hyper-parameter search for BanditNRN
-- Evaluating BanditNRN predictive performance
-- Producing Global and Sample level explanations for predictions from BanditNRN
-- Examining a detailed view of the induced weighted logic
 
 ### A tutorial demonstrating use of Bandit-NRN for multi-class classification with custom domain knowledge:
 

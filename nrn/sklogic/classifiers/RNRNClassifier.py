@@ -16,7 +16,8 @@ from ..datasets.simple_dataset import SimpleDataset
 from ..base.base_estimator import BaseSKLogicEstimator
 
 
-class RNRNClassifier(BaseSKLogicEstimator):
+# class RNRNClassifier(BaseSKLogicEstimator):
+class NRNClassifier(BaseSKLogicEstimator):
 
     def __init__(
             self,
@@ -106,7 +107,8 @@ class RNRNClassifier(BaseSKLogicEstimator):
             persistent_workers (bool): persistent workers for data loaders.
             num_workers (int): number of workers for data loaders.
         """
-        super(RNRNClassifier, self).__init__(
+        # super(RNRNClassifier, self).__init__(
+        super(NRNClassifier, self).__init__(
             binarization=binarization,
             tree_num=tree_num,
             tree_depth=tree_depth,
@@ -256,7 +258,7 @@ class RNRNClassifier(BaseSKLogicEstimator):
                       multi_class=self.multi_class)
         trainer.set_best_state()
 
-    def predict(self, X: pd.DataFrame) -> pd.DataFrame:
+    def predict(self, X: pd.DataFrame, decision_boundary: float = 0.5) -> pd.DataFrame:
         """
         Predict classes with fitted model on new data.
 
@@ -283,7 +285,8 @@ class RNRNClassifier(BaseSKLogicEstimator):
         )
 
         predictions, _ = self.model.predict(prediction_dl)
-        class_predictions = (predictions > predictions.median()).astype(int)
+        # class_predictions = (predictions > predictions.median()).astype(int)
+        class_predictions = (predictions > decision_boundary).astype(int)
 
         class_predictions.rename(columns=lambda x: x.replace("probs_", ""), inplace=True)
 
@@ -386,6 +389,14 @@ class RNRNClassifier(BaseSKLogicEstimator):
             'evaluation_metric': self.evaluation_metric,
             'multi_class': self.multi_class,
         }
+    
+    @staticmethod
+    def _beautify_output(out):
+        if not isinstance(out, str):
+            return out
+        if not out.startswith("0: "):
+            return out
+        return out[3:]
 
     def explain_sample(
             self,
@@ -424,12 +435,12 @@ class RNRNClassifier(BaseSKLogicEstimator):
 
         dataset = SimpleDataset(X.values, np.ones(shape=(X.shape[0], 1)))
 
-        return self.model.explain_samples(
+        out = self.model.explain_samples(
             dataset[sample_index]['features'].unsqueeze(0),
             quantile=quantile,
             target_names=self.target_names,
             explain_type='both',
-            sample_explanation_prefix="The prediction is in the",
+            sample_explanation_prefix="The prediction is",
             print_type='logical',
             ignore_uninformative=True,
             rounding_precision=3,
@@ -440,3 +451,4 @@ class RNRNClassifier(BaseSKLogicEstimator):
             min_max_feature_dict=self.min_max_features_dict,
             feature_importances=False
         )
+        return NRNClassifier._beautify_output(out)
